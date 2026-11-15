@@ -1,6 +1,6 @@
 import requests
 import os
-import json
+
 
 geo_coding_url = "https://geocoding-api.open-meteo.com/v1/search"
 weather_url = "https://api.open-meteo.com/v1/forecast"
@@ -54,20 +54,7 @@ def call_weather(latitude, longitude):
     except requests.RequestException as error:
         print(error)
         return None
-def hide_search_bar(file_name):
-    if os.path.exists(file_name):
-        with open(file_name, "r") as f:
-            data = json.load(f)
-    else:
-        data = {}
 
-    data.setdefault("search_submitted", False)
-    data.setdefault("search_query", None)
-
-    return data
-def save_search_status(file_name, data):
-    with open(file_name, "w") as f:
-        json.dump(data, f)
 
 
 
