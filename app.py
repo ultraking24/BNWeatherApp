@@ -1,7 +1,7 @@
 import streamlit as st
 import json
 import os
-from functions import call_geo_code, call_weather, hide_search_bar, save_search_status
+from functions import call_geo_code, call_weather 
 weather_codes = {
 	"0": "Clear sky",
 	"1": "Mainly clear",
@@ -40,8 +40,12 @@ st.set_page_config(
     layout="wide"
 
 )
-FILE = "search_status.json"
-search_data = hide_search_bar(FILE)
+if "cities" not in st.session_state:
+    st.session_state.cities = []
+if "search_status" not in st.session_state:
+    st.session_state.search_status = False
+if "search_query" not in st.session_state:
+    st.session_state.search_query = ""
 st.markdown("""
 <style>
 .current-weather-card{
@@ -88,11 +92,10 @@ page = st.sidebar.radio(
     ["Dashboard","No Name AI Assistant"],
     
 )
-
 if page == "Dashboard":
     st.title("DASHBOARD")
 
-    if not search_data["search_submitted"]:
+    if not st.session_state.search_status:
 
         with st.form("city_search"):
             city = st.text_input(
@@ -115,17 +118,18 @@ if page == "Dashboard":
                             st.error("City not found!")
 
                         else:
-                            latitude, longitude = coordinates
+                            st.session_state.cities.append(city)
+                            latitude = coordinates[0]
+                            longitude = coordinates[1]
                             data = call_weather(latitude, longitude)
 
                             if data is None or "current" not in data:
                                 st.error("Unable to retrieve weather!")
 
                             else:
-                                search_data["search_query"] = city
-                                search_data["search_submitted"] = True
-
-                                save_search_status(FILE, search_data)
+                                st.session_state.search_query = city
+                                st.session_state.search_status = True
+                                
 
                                 st.rerun()
 
@@ -134,13 +138,13 @@ if page == "Dashboard":
 
     else:
         
-        city = search_data["search_query"]
-
+        city = st.session_state.search_query
         with st.spinner("Loading..."):
             coordinates = call_geo_code(city)
 
             if coordinates is not None:
-                latitude, longitude = coordinates
+                latitude = coordinates[0]
+                longitude = coordinates[1]
                 data = call_weather(latitude, longitude)
 
                 if data is not None and "current" in data:
@@ -167,7 +171,7 @@ if page == "Dashboard":
                     with col1:
                         st.markdown(f"""
                         <div class="weather-data-card">
-                            <h2>{humidity} °F</h2>
+                            <h2>{humidity} %</h2>
                             <p>Humidity</p>
                         </div>
                         """, unsafe_allow_html=True)
@@ -182,13 +186,23 @@ if page == "Dashboard":
                     st.error("Unable to retrieve weather!")
             else:
                 st.error("City not found!")
+        options = ["Choose another city"] + st.session_state.cities
+        choice = st.selectbox(
+            "History",
+            options,
+            index = None,
+            placeholder = "Choose a city"
+        )
+        if choice == "Choose another city":
+            st.session_state.search_status = False
+            st.session_state.search_query = ""
 
-        if st.button("Search Again"):
-            search_data["search_submitted"] = False
-            search_data["search_query"] = None
+            
 
-            save_search_status(FILE, search_data)
-
+            st.rerun()
+        elif choice is not None and choice != st.session_state.search_query:
+            st.session_state.search_query = choice
+            st.session_state.search_status = True
             st.rerun()
 
 else:
