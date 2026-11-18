@@ -1,6 +1,4 @@
 import streamlit as st
-import json
-import os
 from weather_api import call_geo_code, call_weather 
 weather_codes = {
 	"0": "Clear sky",
