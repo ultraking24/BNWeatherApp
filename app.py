@@ -1,7 +1,7 @@
 import streamlit as st
 import json
 import os
-from functions import call_geo_code, call_weather 
+from weather_api import call_geo_code, call_weather 
 weather_codes = {
 	"0": "Clear sky",
 	"1": "Mainly clear",
@@ -161,6 +161,27 @@ if page == "Dashboard":
                         "Unknown Weather Code"
                     )
                     
+                    st.markdown(
+                        """
+                        <div style="text-align: center; font-size: 12px; color: gray;">
+                            Weather data by
+                            <a href="https://open-meteo.com/"
+                                target="_blank"
+                                style="color: gray;">
+                                Open-Meteo.com
+                            </a>
+                            |
+                             <a href="https://creativecommons.org/licenses/by/4.0/"
+                                target="_blank"
+                                style="color: gray;">
+                                CC BY 4.0
+                            </a>
+                        </div>
+                        """,
+                    unsafe_allow_html=True
+                )
+
+
                     st.markdown(f"""
                     <div class="current-weather-card">
                         <h2>{temperature}F</h2>
